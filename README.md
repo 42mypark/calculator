@@ -11,3 +11,7 @@
 - T -> F
 - F -> n
 - F -> ( E )
+
+### Tools
+
+- [LALR Parser table generator](https://jsmachines.sourceforge.net/machines/lalr1.html)
