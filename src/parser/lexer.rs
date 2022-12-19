@@ -1,4 +1,6 @@
-use std::num;
+extern crate alloc;
+
+use alloc::collections::VecDeque;
 
 use super::token::*;
 
@@ -22,7 +24,7 @@ pub fn to_line(args: Vec<String>) -> String {
 }
 
 struct Lexer {
-    tokens: Vec<Token>,
+    tokens: VecDeque<Token>,
     state: LexingState,
     number: String,
 }
@@ -55,7 +57,7 @@ impl Lexer {
         let result = self.number.parse::<isize>();
         let kind = TokenKind::NUMBER;
         match result {
-            Ok(num) => self.tokens.push(Token::new(kind, num)),
+            Ok(num) => self.tokens.push_back(Token::new(kind, num)),
             Err(e) => panic!("invalid number: {e}"),
         }
         self.number.clear();
@@ -75,7 +77,7 @@ impl Lexer {
             ')' => TokenKind::RP,
             _ => panic!("invalid charactor"),
         };
-        self.tokens.push(Token::new(kind, 0));
+        self.tokens.push_back(Token::new(kind, 0));
         self
     }
 
@@ -95,7 +97,7 @@ impl Lexer {
     }
 }
 
-pub fn to_tokens(line: String) -> Vec<Token> {
+pub fn to_tokens(line: String) -> VecDeque<Token> {
     let mut lexer = Lexer {
         tokens: Default::default(),
         state: LexingState::BLANK,
@@ -106,6 +108,7 @@ pub fn to_tokens(line: String) -> Vec<Token> {
     }
     lexer.action('\0');
 
+    lexer.tokens.push_back(Token::new(TokenKind::END, 0));
     lexer.tokens
 }
 
@@ -121,10 +124,16 @@ mod tests {
         let s = String::from("1  ");
         assert_eq!(
             to_tokens(s),
-            vec![Token {
-                kind: TokenKind::NUMBER,
-                value: 1
-            }]
+            vec![
+                Token {
+                    kind: TokenKind::NUMBER,
+                    value: 1
+                },
+                Token {
+                    kind: TokenKind::END,
+                    value: 0
+                },
+            ]
         )
     }
 
@@ -154,6 +163,10 @@ mod tests {
                     kind: TokenKind::NUMBER,
                     value: 3
                 },
+                Token {
+                    kind: TokenKind::END,
+                    value: 0
+                },
             ]
         )
     }
@@ -175,6 +188,10 @@ mod tests {
                     kind: TokenKind::RP,
                     value: 0
                 },
+                Token {
+                    kind: TokenKind::END,
+                    value: 0
+                },
             ]
         )
     }
@@ -183,10 +200,16 @@ mod tests {
         let s = String::from("123");
         assert_eq!(
             to_tokens(s),
-            vec![Token {
-                kind: TokenKind::NUMBER,
-                value: 123
-            },]
+            vec![
+                Token {
+                    kind: TokenKind::NUMBER,
+                    value: 123
+                },
+                Token {
+                    kind: TokenKind::END,
+                    value: 0
+                },
+            ]
         )
     }
 
